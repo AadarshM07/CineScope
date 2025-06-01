@@ -59,18 +59,6 @@ You **do not** need to create the UI — just connect the logic.
 3. Create a table to hold movie data.
 4. Import the provided `movies.csv` file into the MySQL table.
 
-   You can use:
-   - MySQL Workbench
-   - MySQL CLI with:
-     ```sql
-     LOAD DATA INFILE 'path/to/movies.csv'
-     INTO TABLE movies
-     FIELDS TERMINATED BY ',' 
-     ENCLOSED BY '"'
-     LINES TERMINATED BY '\n'
-     IGNORE 1 ROWS;
-     ```
-
 ---
 
 ### 🧠 Step 2: Understand the UI Flow
@@ -91,21 +79,13 @@ Your job is to:
 
 ---
 
-### 🧪 Step 3: Implement the Logic
 
-- Use any MySQL connector library (`mysql-connector-python` recommended)
-- Write Python functions to:
-  - Connect to the database
-  - Generate queries based on user input
-  - Fetch and display data in the UI
-- Keep your code modular and clean
 
----
-
-### 💾 Step 4: Add Export to CSV
+### 💾 Step 3: Add Export to CSV
 
 - The visualized data should be exportable to a CSV file
-- On clicking the **Export** button, write the current table data to a CSV like `output.csv`
+- Create an **Export data** button
+- On clicking the **Export data** button, write the current table data to a CSV like `output.csv`
 
 ---
 
@@ -118,15 +98,6 @@ Your job is to:
 
 ---
 
-## ✅ Task Checklist
-
-- [ ] SQL database created and connected
-- [ ] `movies.csv` data imported into MySQL
-- [ ] UI logic implemented for filters and display
-- [ ] Export to CSV functionality completed
-- [ ] Code is clean, well-structured, and commented
-
----
 
 ## 📚 Need Help?
 
@@ -136,19 +107,10 @@ Your job is to:
 
 ---
 
-## ✨ Bonus (Optional)
-
-- Add a **Reset Filters** button
-- Add a **Search All Columns** feature
-- Add loading indicators or success messages
-
----
-
 ## 📬 Submitting
 
 - Push your completed code to a GitHub repository
-- Include a `README.md` explaining your approach (optional)
-- Share the repo link for review!
+- Include a `README.md` explaining your approach 
 
 ---
 
