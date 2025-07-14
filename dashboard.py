@@ -1,12 +1,11 @@
 import sys
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QTableWidget, QTableWidgetItem, QGridLayout, QTextEdit, QSizePolicy,QLineEdit
+    QPushButton, QTableWidget, QTableWidgetItem, QGridLayout, 
+    QTextEdit, QSizePolicy, QLineEdit
 )
-
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
-
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -21,6 +20,7 @@ class Dashboard(QWidget):
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(10)
 
+        # Header
         header = QLabel("🎬 CineScope Dashboard")
         header.setFont(QFont("Arial", 24, QFont.Bold))
         header.setAlignment(Qt.AlignCenter)
@@ -29,106 +29,83 @@ class Dashboard(QWidget):
 
         split_layout = QHBoxLayout()
 
+        # Left Panel
         left_container = QVBoxLayout()
         left_container.setSpacing(10)
-        left_container.setAlignment(Qt.AlignTop)  # Move components to the top
+        left_container.setAlignment(Qt.AlignTop)
 
-        # Existing buttons
-        existing_buttons = [
-            ("Search by Genre", self.query_genre),
-            ("Search by Year", self.query_year),
-            ("Search by IMDB Rating", self.query_rating),
-            ("Search by Director", self.query_director),
-            ("Search by Actor", self.query_actor),
+        # Search buttons
+        search_heading = QLabel("Search By")
+        search_heading.setFont(QFont("Arial", 18, QFont.Bold))
+        left_container.addWidget(search_heading)
+
+        search_buttons = [
+            ("Genre", "genre"),
+            ("Year", "year"),
+            ("Rating", "rating"),
+            ("Director", "director"),
+            ("Actor", "actor"),
         ]
 
-        existing_grid = QGridLayout()
-
-        for index, (label, callback) in enumerate(existing_buttons):
+        search_grid = QGridLayout()
+        for index, (label, mode) in enumerate(search_buttons):
             btn = QPushButton(label)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #1f1f1f;
-                    border: 1px solid #333;
-                    border-radius: 3px;
-                    padding: 6px;
-                }
-                QPushButton:hover {
-                    background-color: #333;
-                }
-            """)
+            btn.setStyleSheet(self.get_button_style(False))
             btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            btn.clicked.connect(callback)
-            row, col = divmod(index, 2)  
-            existing_grid.addWidget(btn, row, col)
-
-        left_container.addLayout(existing_grid)
-
-        category_heading = QLabel("Select Columns")
-        category_heading.setFont(QFont("Arial", 18, QFont.Bold))
-        category_heading.setAlignment(Qt.AlignLeft)
-        left_container.addWidget(category_heading)
-
-        category_buttons = [
-            ("Title", self.query_title),
-            ("Year", self.query_year),
-            ("Genre", self.query_genre),
-            ("Rating", self.query_rating),
-            ("Director", self.query_directors),
-            ("Stars", self.query_actors),
-        ]
-
-        category_grid = QGridLayout()
-
-        for index, (label, callback) in enumerate(category_buttons):
-            btn = QPushButton(label)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #1f1f1f;
-                    border: 1px solid #333;
-                    border-radius: 3px;
-                    padding: 6px;
-                }
-                QPushButton:hover {
-                    background-color: #333;
-                }
-            """)
-            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            btn.clicked.connect(callback)
+            btn.clicked.connect(lambda _, m=mode: self.set_search_mode(m))
             row, col = divmod(index, 2)
-            category_grid.addWidget(btn, row, col)
+            search_grid.addWidget(btn, row, col)
+        left_container.addLayout(search_grid)
 
-        left_container.addLayout(category_grid)
+        # Column selection
+        column_heading = QLabel("Select Columns")
+        column_heading.setFont(QFont("Arial", 18, QFont.Bold))
+        left_container.addWidget(column_heading)
 
+        column_buttons = [
+            ("Title", "title"),
+            ("Year", "year"),
+            ("Genre", "genre"),
+            ("Rating", "rating"),
+            ("Director", "director"),
+            ("Stars", "stars"),
+        ]
+
+        column_grid = QGridLayout()
+        for index, (label, col) in enumerate(column_buttons):
+            btn = QPushButton(label)
+            btn.setStyleSheet(self.get_button_style(False))
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            btn.clicked.connect(lambda _, c=col: self.toggle_column(c))
+            row, col = divmod(index, 2)
+            column_grid.addWidget(btn, row, col)
+        left_container.addLayout(column_grid)
+
+        # Search input
         self.query_input = QLineEdit()
-        self.query_input.setPlaceholderText("Enter filter value (e.g. 1999 for Year)")
+        self.query_input.setPlaceholderText("Enter search term")
         self.query_input.setStyleSheet("background-color: #1e1e1e; color: white; padding: 5px; border: 1px solid #444;")
-        self.query_input.setFixedHeight(30)
         left_container.addWidget(self.query_input)
 
-        send_btn = QPushButton("Send")
-        send_btn.setStyleSheet("background-color: #e50914; color: white; padding: 6px; border-radius: 5px;")
-        send_btn.setFixedWidth(100)
-        left_container.addWidget(send_btn, alignment=Qt.AlignLeft)
+        # Action buttons
+        action_layout = QHBoxLayout()
+        search_btn = QPushButton("Search")
+        search_btn.setStyleSheet("background-color: #e50914; color: white; padding: 6px; border-radius: 5px;")
+        search_btn.clicked.connect(self.execute_search)
+        action_layout.addWidget(search_btn)
 
+        export_btn = QPushButton("Export CSV")
+        export_btn.setStyleSheet("background-color: #1f1f1f; color: white; padding: 6px; border-radius: 5px;")
+        export_btn.clicked.connect(self.export_csv)
+        action_layout.addWidget(export_btn)
+        left_container.addLayout(action_layout)
+
+        # Right Panel
         right_side_layout = QVBoxLayout()
         right_side_layout.setSpacing(10)
 
-        # Right Content
-        right_content = QWidget()
-        right_content.setStyleSheet("background-color: black; border-radius: 8px;")
-        right_content.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        # Table widget
+        # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setRowCount(1)
-        self.table.setItem(0, 0, QTableWidgetItem("Movie"))
-        self.table.setItem(0, 1, QTableWidgetItem("Genre"))
-        self.table.setItem(0, 2, QTableWidgetItem("Year"))
-        self.table.setItem(0, 3, QTableWidgetItem("Rating"))
-        self.table.setItem(0, 4, QTableWidgetItem("Director"))
-
         self.table.setStyleSheet("""
             QTableWidget {
                 color: white;
@@ -144,62 +121,61 @@ class Dashboard(QWidget):
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        right_content_layout = QVBoxLayout()
-        right_content_layout.addWidget(self.table)
-        right_content.setLayout(right_content_layout)
-        right_content.setFixedHeight(1200)
+        # Output console
+        self.output_console = QTextEdit()
+        self.output_console.setPlaceholderText("Results will appear here...")
+        self.output_console.setStyleSheet("""
+            QTextEdit {
+                background-color: #1e1e1e;
+                color: white;
+                border: 1px solid #444;
+                padding: 5px;
+            }
+        """)
+        self.output_console.setFixedHeight(100)
 
-        right_side_layout.addWidget(right_content)
+        right_side_layout.addWidget(self.table)
+        right_side_layout.addWidget(self.output_console)
 
         split_layout.addLayout(left_container, 2)
         split_layout.addLayout(right_side_layout, 8)
-
         main_layout.addLayout(split_layout)
-
         self.setLayout(main_layout)
 
+    def get_button_style(self, is_selected):
+        if is_selected:
+            return """
+                QPushButton {
+                    background-color: #ffcc00;
+                    border: 1px solid #ff9900;
+                    border-radius: 3px;
+                    padding: 6px;
+                }
+            """
+        else:
+            return """
+                QPushButton {
+                    background-color: #1f1f1f;
+                    border: 1px solid #333;
+                    border-radius: 3px;
+                    padding: 6px;
+                }
+                QPushButton:hover {
+                    background-color: #333;
+                }
+            """
 
-    def query_title(self):
-        print("title")
-        #add your logic
+    def set_search_mode(self, mode):
+        self.output_console.append(f"Search mode set to: {mode}")
 
-    def query_year(self):
-        print("year")
-        #add your logic
+    def toggle_column(self, column):
+        self.output_console.append(f"Column toggled: {column}")
 
-    def query_genre(self):
-        print("genre")
-        #add your logic
+    def execute_search(self):
+        self.output_console.append("Executing search...")
 
-    def query_directors(self):
-        print("directors")
-        #add your logic
-
-    def query_actors(self):
-        print("actors")
-        #add your logic
-    
-    def query_rating(self):
-        print("rating")
-        #add your logic
-    
-    def query_year(self):
-        print("year")
-        #add your logic
-    
-    def query_director(self):
-        print("director")
-        #add your logic
-    
-    def query_actor(self):
-        print("actor")
-        #add your logic
-    
     def export_csv(self):
-        print("Exporting to CSV...")
-        # Implement CSV export logic here
-
-    
+        self.output_console.append("Exporting to CSV...")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
